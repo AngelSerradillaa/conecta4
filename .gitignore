@@ -1,0 +1,55 @@
+# ========================
+# Node / JavaScript
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# ========================
+# Vite / Frontend
+# ========================
+.vite/
+.cache/
+*.local
+
+# Tailwind / PostCSS
+tailwind.config.js
+postcss.config.js
+# ⚠️ Si quieres versionar la config, quita estas líneas
+
+# ========================
+# IDEs / Editors
+# ========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ========================
+# OS files
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
