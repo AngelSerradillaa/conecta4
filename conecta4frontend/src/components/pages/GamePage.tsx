@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../../styles/GamePage.css";
 
 type Player = "R" | "Y" | null;
 
@@ -19,6 +20,9 @@ export const GamePage = () => {
   const [board, setBoard] = useState<Player[][]>(createEmptyBoard());
   const [currentPlayer, setCurrentPlayer] = useState<Player>("R");
   const [winner, setWinner] = useState<Player>(null);
+  const [hoverCol, setHoverCol] = useState<number | null>(null);
+  const [lastMove, setLastMove] = useState<{ row: number, col: number } | null>(null);
+  //const [fallingPiece, setFallingPiece] = useState<{ row: number, col: number } | null>(null);
 
   const checkWinner = (board: Player[][], row: number, col: number, player: Player): boolean => {
     // Verificar filas
@@ -59,13 +63,14 @@ export const GamePage = () => {
   }
 
   const dropPiece = (col: number) => {
-    if (winner) return; // No hacer nada si ya hay un ganador
+    if (winner) return; // No hacer nada si ya hay un ganador o una pieza cayendo
 
     const newBoard = board.map((row: Player[]) => [...row]);
 
     for (let row = ROWS - 1; row >= 0; row--) {
       if (newBoard[row][col] === null) {
         newBoard[row][col] = currentPlayer;
+        setLastMove({ row: row, col });
 
         if (checkWinner(newBoard, row, col, currentPlayer)) {
           setBoard(newBoard);
@@ -99,24 +104,42 @@ export const GamePage = () => {
           {currentPlayer === "R" ? "🔴 Rojo" : "🟡 Amarillo"}
         </span>
       </p>
-
-      <div style={styles.board}>
+      <div className="previewRow">
+        {Array.from({ length: COLS}).map((_, colIndex) => (
+          <div key={colIndex} className="previewCell">
+            {hoverCol === colIndex && (
+              <div className={`piece preview ${currentPlayer === "R" ? "red" : "yellow"}`} />
+            )}
+          </div>
+        )
+            )}
+      </div>
+      <div className="board">
         {board.map((row, rowIndex) => (
-          <div key={rowIndex} style={styles.row}>
+          <div key={rowIndex} className="row">
             {row.map((cell, colIndex) => (
               <div
                 key={colIndex}
-                style={{
-                  ...styles.cell,
-                  background:
-                    cell === "R"
-                      ? "red"
-                      : cell === "Y"
-                      ? "gold"
-                      : "#1e293b",
-                }}
+                className="cell"
+                onMouseEnter={() => setHoverCol(colIndex)}
+                onMouseLeave={() => setHoverCol(null)}
                 onClick={() => dropPiece(colIndex)}
-              />
+              >
+                {cell && (
+                  <div
+                    className={`piece ${cell === "R" ? "red" : "yellow"} ${
+                      lastMove?.row === rowIndex && lastMove?.col === colIndex
+                        ? "drop"
+                        : ""
+                    }`}
+                    style={
+                      lastMove?.row === rowIndex && lastMove?.col === colIndex
+                        ? { "--drop-distance": `${rowIndex * 82}px` } as React.CSSProperties
+                        : {}
+                    }
+                  />
+                )}
+              </div>
             ))}
           </div>
         ))}
