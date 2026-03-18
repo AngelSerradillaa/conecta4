@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import confetti from "canvas-confetti";
 import "../../styles/GamePage.css";
 
 type Player = "R" | "Y" | null;
@@ -22,7 +23,49 @@ export const GamePage = () => {
   const [winner, setWinner] = useState<Player>(null);
   const [hoverCol, setHoverCol] = useState<number | null>(null);
   const [lastMove, setLastMove] = useState<{ row: number, col: number } | null>(null);
+  const [winningCells, setWinningCells] = useState<{row:number,col:number}[]>([]);
   //const [fallingPiece, setFallingPiece] = useState<{ row: number, col: number } | null>(null);
+
+  useEffect(() => {
+  if (!winner) return;
+
+  const duration = 2000;
+  const end = Date.now() + duration;
+
+  const colors = ["#ef4444", "#facc15", "#2563eb", "#22c55e"];
+
+  const frame = () => {
+    confetti({
+      particleCount: 4,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors,
+      zIndex: 9999
+    });
+
+    confetti({
+      particleCount: 4,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  };
+
+  confetti({
+    particleCount: 150,
+    spread: 90,
+    origin: { y: 0.6 }
+  });
+
+  frame();
+
+}, [winner]);
 
   const checkWinner = (board: Player[][], row: number, col: number, player: Player): boolean => {
     // Verificar filas
@@ -41,7 +84,12 @@ export const GamePage = () => {
       count += countInDirection(board, row, col, dr, dc, player);
       count += countInDirection(board, row, col, -dr, -dc, player);
 
-      if (count >= 4) return true;
+      if (count >= 4) {
+        setWinningCells([
+          {row,col}
+        ]);
+        return true;
+      }
     }
 
     return false;
@@ -93,11 +141,7 @@ export const GamePage = () => {
   return (
     <div style={styles.container}>
       <h1>Conecta 4</h1>
-      {winner && (
-        <h2>
-          🎉 Gana {winner === "R" ? "🔴 Rojo" : "🟡 Amarillo"}
-        </h2>
-      )}
+      
       <p>
         Turno:{" "}
         <span style={{ fontWeight: "bold" }}>
@@ -127,11 +171,9 @@ export const GamePage = () => {
               >
                 {cell && (
                   <div
-                    className={`piece ${cell === "R" ? "red" : "yellow"} ${
-                      lastMove?.row === rowIndex && lastMove?.col === colIndex
-                        ? "drop"
-                        : ""
-                    }`}
+                    className={`piece ${cell === "R" ? "red" : "yellow"} 
+                      ${lastMove?.row === rowIndex && lastMove?.col === colIndex ? "drop" : ""} 
+                      ${winningCells.some(c => c.row === rowIndex && c.col === colIndex) ? "winner" : ""}`}
                     style={
                       lastMove?.row === rowIndex && lastMove?.col === colIndex
                         ? { "--drop-distance": `${rowIndex * 82}px` } as React.CSSProperties
@@ -152,6 +194,20 @@ export const GamePage = () => {
           Ir al Login
         </button>
       </div>
+      {winner && (
+        <div className="victoryOverlay">
+          <div className="victoryCard">
+            <div className="trophy">🏆</div>
+
+            <h1>
+              {winner === "R" ? "🔴 Rojo gana" : "🟡 Amarillo gana"}
+            </h1>
+
+            <button onClick={resetGame}>Jugar otra vez</button>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 }
